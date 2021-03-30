@@ -68,3 +68,36 @@ async def create_item(nx: NX):
     "Country 2 investment": C2_INVESTMENT,
     "Country 2 NX": C2_NX
 	}
+
+class CE(BaseModel):
+    Y: float
+    G: float
+    T: float
+    C_SLOPE: float
+    C_INTERCEPT: float
+    C_MIDVAL: float
+    I_SLOPE: float
+    I_INTERCEPT: float
+
+@app.post("/CE/")
+async def CE_calculator(ce: CE):
+    r = Symbol('r')
+    C = ce.C_INTERCEPT + ce.C_MIDVAL*(ce.Y - ce.T) - ce.C_SLOPE*r
+    I = ce.I_INTERCEPT - ce.I_SLOPE*r
+    S = ce.Y - C - ce.G
+    r_value = float(solve((S - I))[0])
+    I_r = ce.I_INTERCEPT - ce.I_SLOPE*r_value
+    S_r = ce.Y - (ce.C_INTERCEPT + ce.C_MIDVAL*(ce.Y - ce.T) - ce.C_SLOPE*r_value) - ce.G
+    if S_r == I_r:
+        equilibrium = True
+    else:
+        equilibrium = False
+    return {
+        "Message": "Success!",
+        "r value": r_value,
+        "Investment": I_r,
+        "Savings": S_r,
+        "Equilibrium?": equilibrium
+    }
+
+
